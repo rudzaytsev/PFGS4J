@@ -26,17 +26,15 @@ JAVA_HOME=/usr/lib/jvm/java-8-oracle
 AGENT_HOME=$HOME/scicon/sampling/perf-map-agent
 FLAME_GRAPH_HOME=$HOME/scicon/sampling/FlameGraph
 
-# functions declaration
-
-
-
 # default frequency
 Freq=99
-
 # default PidMode = 1 (disabled)
 PidMode=1
+# default profiling application pid id
 ProfileAppPid=-1
-while getopts ":F:p:h" opt; do
+# defalt filename for flame graph output svg file without extension
+FGraphOutputFileName="flamegraph" 
+while getopts ":F:p:o:h" opt; do
   case $opt in
    F)
      echo "Sampling Freq set to $OPTARG Hz"
@@ -50,6 +48,10 @@ while getopts ":F:p:h" opt; do
      echo "PID mode enabled"
      PidMode=0
      ProfileAppPid=$OPTARG     
+     ;;
+   o)
+     echo "FlameGraph will be saved in $OPTARG.svg"
+     FGraphOutputFileName=$OPTARG
      ;;
    :)
      echo "Option -$OPTARG requres an argument">&2
@@ -126,10 +128,10 @@ done
 if [[ PidMode ]]; then
   cmd="perf script -f comm,pid,tid,cpu,time,event,ip,sym,dso,trace | \
     $FLAME_GRAPH_HOME/stackcollapse-perf.pl --pid | grep java-$ProfileAppPid | \
-    $FLAME_GRAPH_HOME/flamegraph.pl --color=java --hash > flamegraph.svg"
+    $FLAME_GRAPH_HOME/flamegraph.pl --color=java --hash > $FGraphOutputFileName.svg"
 else
-  cmd="sudo perf script | $FLAME_GRAPH_HOME/stackcollapse-perf.pl | \
-    $FLAME_GRAPH_HOME/flamegraph.pl --color=java --hash > flamegraph.svg"  
+  cmd="perf script | $FLAME_GRAPH_HOME/stackcollapse-perf.pl | \
+    $FLAME_GRAPH_HOME/flamegraph.pl --color=java --hash > $FGraphOutputFileName.svg"  
 fi
 
 echo $cmd
