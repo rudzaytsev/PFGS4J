@@ -24,13 +24,19 @@
 JAVA_HOME=/usr/lib/jvm/java-8-oracle
 #AGENT_HOME=/usr/lib/jvm/perf-map-agent	# from https://github.com/jrudolph/perf-map-agent
 AGENT_HOME=$HOME/scicon/sampling/perf-map-agent
+FLAME_GRAPH_HOME=$HOME/scicon/sampling/FlameGraph
+
+# functions declaration
+
+
 
 # default frequency
 Freq=99
 
 # default PidMode = 1 (disabled)
 PidMode=1
-while getopts ":F:ph" opt; do
+ProfileAppPid=-1
+while getopts ":F:p:h" opt; do
   case $opt in
    F)
      echo "Sampling Freq set to $OPTARG Hz"
@@ -42,14 +48,15 @@ while getopts ":F:ph" opt; do
      ;;
    p)
      echo "PID mode enabled"
-     exit 0
+     PidMode=0
+     ProfileAppPid=$OPTARG     
      ;;
    :)
      echo "Option -$OPTARG requres an argument">&2
      exit 1
      ;;
    \?)
-     echo "Invalid option -OPTARG">&2
+     echo "Invalid option -$OPTARG">&2
      exit 2
      ;;
   esac
@@ -69,11 +76,9 @@ if [[ ! -x $AGENT_HOME ]]; then
 	echo "ERROR: AGENT_HOME not set correctly; edit $0 and fix"
 	exit 5
 fi
- 
-echo "perf record -F $Freq -a -g -- sleep 30;"
 
-
-
+echo "record -F $Freq -a -g -- sleep 30;" 
+perf record -F $Freq -a -g -- sleep 30;
 
 # figure out where the agent files are:
 AGENT_OUT=""
@@ -117,3 +122,17 @@ echo $cmd
 	echo "wc(1): $(wc $mapfile)"
 	echo
 done
+
+if [[ PidMode ]]; then
+  cmd="perf script -f comm,pid,tid,cpu,time,event,ip,sym,dso,trace | \
+    $FLAME_GRAPH_HOME/stackcollapse-perf.pl --pid | grep java-$ProfileAppPid | \
+    $FLAME_GRAPH_HOME/flamegraph.pl --color=java --hash > flamegraph.svg"
+else
+  cmd="sudo perf script | $FLAME_GRAPH_HOME/stackcollapse-perf.pl | \
+    $FLAME_GRAPH_HOME/flamegraph.pl --color=java --hash > flamegraph.svg"  
+fi
+
+echo $cmd
+eval $cmd
+
+
