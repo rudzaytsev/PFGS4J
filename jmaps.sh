@@ -25,20 +25,55 @@ JAVA_HOME=/usr/lib/jvm/java-8-oracle
 #AGENT_HOME=/usr/lib/jvm/perf-map-agent	# from https://github.com/jrudolph/perf-map-agent
 AGENT_HOME=$HOME/scicon/sampling/perf-map-agent
 
+# default frequency
+Freq=99
+
+# default PidMode = 1 (disabled)
+PidMode=1
+while getopts ":F:ph" opt; do
+  case $opt in
+   F)
+     echo "Sampling Freq set to $OPTARG Hz"
+     Freq=$OPTARG
+     ;;     
+   h)
+     echo "Help information"
+     exit 0
+     ;;
+   p)
+     echo "PID mode enabled"
+     exit 0
+     ;;
+   :)
+     echo "Option -$OPTARG requres an argument">&2
+     exit 1
+     ;;
+   \?)
+     echo "Invalid option -OPTARG">&2
+     exit 2
+     ;;
+  esac
+done      
+
 if [[ "$USER" != root ]]; then
 	echo "ERROR: not root user? exiting..."
-	exit
+	exit 3
 fi
 
 if [[ ! -x $JAVA_HOME ]]; then
 	echo "ERROR: JAVA_HOME not set correctly; edit $0 and fix"
-	exit
+	exit 4
 fi
 
 if [[ ! -x $AGENT_HOME ]]; then
 	echo "ERROR: AGENT_HOME not set correctly; edit $0 and fix"
-	exit
+	exit 5
 fi
+ 
+echo "perf record -F $Freq -a -g -- sleep 30;"
+
+
+
 
 # figure out where the agent files are:
 AGENT_OUT=""
