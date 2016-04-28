@@ -1,2 +1,4 @@
-# PFGS4J
-Perf and Flame Graph sticker for Java 8+ applications
+# Profy
+Profy is Perf and FlameGraph sticker for Java 8+ applications
+
+
