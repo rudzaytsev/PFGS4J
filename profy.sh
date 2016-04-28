@@ -1,31 +1,27 @@
 #!/bin/bash
 
-# jmaps - creates java /tmp/perf-PID.map symbol maps for all java processes.
+# profy is open source tool which is based on jmaps source code which had been written by Brendan Gregg 
+# (https://github.com/brendangregg/Misc/blob/master/java/jmaps).
+# It provide more configuration options for integration between   
+# perf-map-agent (https://github.com/jrudolph/perf-map-agent)
+# and FlameGraph (https://github.com/brendangregg/FlameGraph)
+# Read help for details. 
 #
-# This is a helper script that finds all running "java" processes, then executes
-# perf-map-agent on them all, creating symbol map files in /tmp. These map files
-# are read by perf_events (aka "perf") when doing system profiles (specifically,
-# the "report" and "script" subcommands).
-#
-# My typical workflow is this:
-#
-# perf record -F 99 -a -g -- sleep 30; jmaps
-# perf script > out.stacks
-# ./stackcollapse-perf.pl out.stacks | ./flamegraph.pl --color=java --hash > out.stacks.svg
-#
-# The stackcollapse-perf.pl and flamegraph.pl programs come from:
-# https://github.com/brendangregg/FlameGraph
-#
-# REQUIREMENTS:
-# Tune two environment settings below.
-#
-# 13-Feb-2015	Brendan Gregg	Created this.
+# This script creates java /tmp/perf-PID.map symbol maps for all java processes (or concrete java process).
+# Then it executes perf-map-agent on them all, creating symbol map files in /tmp. These map files
+# are read by perf_events (aka "perf") when doing system profiles and results visualisation via flamegraph.
+# Result of work is .svg file that contains graph of overhead for java program(s)
 
+# Configure these options for correct work of utility
+# path to Oracle Java
 JAVA_HOME=/usr/lib/jvm/java-8-oracle
-#AGENT_HOME=/usr/lib/jvm/perf-map-agent	# from https://github.com/jrudolph/perf-map-agent
+# path to perf-map-agent
 AGENT_HOME=$HOME/scicon/sampling/perf-map-agent
+# path to FlameGraph
 FLAME_GRAPH_HOME=$HOME/scicon/sampling/FlameGraph
 
+# utility name
+UTILITY_NAME="profy.sh"
 # default frequency
 Freq=99
 # default PidMode = 1 (disabled)
@@ -41,7 +37,9 @@ while getopts ":F:p:o:h" opt; do
      Freq=$OPTARG
      ;;     
    h)
-     echo "Help information"
+     echo "usage: $UTILITY_NAME [-F sampleFrequency] [-p javaAppPid] [-o outputGraphFileName]"
+     echo "usage: $UTILITY_NAME [-h]"
+     echo "For obtaining correct results profiled java program should be running with XX:+PreserveFramePointer JDK option" 
      exit 0
      ;;
    p)
