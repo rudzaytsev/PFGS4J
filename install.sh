@@ -26,7 +26,10 @@ yum -y install perf
 # Install perf-map-agent
 yum -y install cmake
 
-cd /usr/lib/jvm
+AGENT_CLONE_DIR=/usr/lib/jvm
+FGRAPH_CLONE_DIR=/usr/lib/jvm 
+
+cd $AGENT_CLONE_DIR
 rm -rf perf-map-agent
 git clone --depth=1 https://github.com/jrudolph/perf-map-agent
 cd perf-map-agent
@@ -34,6 +37,16 @@ cmake .
 make
 
 # Install FlameGraph
-cd /usr/lib/jvm
+cd $FGRAPH_CLONE_DIR
 rm -rf FlameGraph
 git clone --depth=1 https://github.com/brendangregg/FlameGraph
+
+UTILITY_NAME="profy.sh"
+
+echo "Installation complited"
+echo "Please configure utility file $UTILITY_NAME"
+echo "Please set variable JAVA_HOME to $JAVA_HOME before run $UTILITY_NAME"
+echo "Please set variable AGENT_HOME to $AGENT_CLONE_DIR/perf-map-agent before run $UTILITY_NAME"
+echo "Please set variable FLAME_GRAPH_HOME to $FGRAPH_CLONE_DIR/FlameGraph before run $UTILITY_NAME"
+
+
