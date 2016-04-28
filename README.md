@@ -24,6 +24,9 @@ RedHat based Linux distribution.
 ## Profy options
 
 -h - help
+
 -F - setup sampling frequency in Hz (default value = 99 Hz)
+
 -p - setup pid of java application for profiling (without this aoption all java processes will be profiled)
+
 -o - setup output file name, default value = flamegraph (don't specify extension, program specifies .svg to output file )
